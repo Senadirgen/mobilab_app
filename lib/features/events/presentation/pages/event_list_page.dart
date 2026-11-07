@@ -7,6 +7,7 @@ import '../widgets/event_card.dart';
 import '../widgets/loading_widget.dart';
 import '../widgets/error_widget.dart';
 import 'event_detail_page.dart';
+import 'favorites_page.dart';
 
 class EventListPage extends StatefulWidget {
   final VoidCallback onToggleTheme;
@@ -33,6 +34,16 @@ class _EventListPageState extends State<EventListPage> {
         title: const Text('Etkinlik Keşfi'),
         actions: [
           IconButton(
+            icon: const Icon(Icons.favorite, color: Colors.redAccent),
+            tooltip: 'Favorilerim',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const FavoritesPage()),
+              );
+            },
+          ),
+          IconButton(
             icon: Icon(widget.isDarkMode ? Icons.light_mode : Icons.dark_mode),
             onPressed: widget.onToggleTheme,
             tooltip: 'Temayı Değiştir',
@@ -41,7 +52,7 @@ class _EventListPageState extends State<EventListPage> {
       ),
       body: Column(
         children: [
-          // Arama Arayüzü
+          // Performanslı Arama Kutusu (FilterEventsEvent kullanır, API'ye tekrar gitmez)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
             child: TextField(
@@ -54,7 +65,7 @@ class _EventListPageState extends State<EventListPage> {
               ),
               onChanged: (query) {
                 currentSearchQuery = query;
-                context.read<EventBloc>().add(FetchEventsEvent(
+                context.read<EventBloc>().add(FilterEventsEvent(
                       search: query,
                       categoryId: selectedCategoryId,
                     ));
@@ -78,7 +89,7 @@ class _EventListPageState extends State<EventListPage> {
                           selected: selectedCategoryId == null,
                           onSelected: (selected) {
                             setState(() => selectedCategoryId = null);
-                            context.read<EventBloc>().add(FetchEventsEvent(
+                            context.read<EventBloc>().add(FilterEventsEvent(
                                   search: currentSearchQuery,
                                   categoryId: null,
                                 ));
@@ -96,7 +107,7 @@ class _EventListPageState extends State<EventListPage> {
                               setState(() {
                                 selectedCategoryId = selected ? cat.name : null;
                               });
-                              context.read<EventBloc>().add(FetchEventsEvent(
+                              context.read<EventBloc>().add(FilterEventsEvent(
                                     search: currentSearchQuery,
                                     categoryId: selectedCategoryId,
                                   ));
@@ -112,7 +123,7 @@ class _EventListPageState extends State<EventListPage> {
             },
           ),
 
-          // Etkinlik Listesi & "Daha Fazla Yükle" Butonu
+          // Etkinlik Listesi
           Expanded(
             child: BlocBuilder<EventBloc, EventState>(
               builder: (context, state) {
@@ -135,30 +146,8 @@ class _EventListPageState extends State<EventListPage> {
                     );
                   }
                   return ListView.builder(
-                    itemCount: state.events.length + (state.hasMore ? 1 : 0),
+                    itemCount: state.events.length,
                     itemBuilder: (context, index) {
-                      // Eğer listenin sonundaysak ve yüklenmeyi bekleyen daha fazla eleman varsa "Daha Fazla Yükle" butonunu göster
-                      if (index == state.events.length) {
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 32.0),
-                          child: state.isFetchingMore
-                              ? const Center(child: CircularProgressIndicator())
-                              : ElevatedButton.icon(
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(vertical: 12),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                  ),
-                                  icon: const Icon(Icons.add),
-                                  label: const Text('Daha Fazla Yükle'),
-                                  onPressed: () {
-                                    context.read<EventBloc>().add(LoadMoreEventsEvent());
-                                  },
-                                ),
-                        );
-                      }
-
                       final event = state.events[index];
                       final isFav = state.favoriteIds.contains(event.id);
                       return EventCard(

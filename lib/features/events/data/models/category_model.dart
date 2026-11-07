@@ -11,7 +11,6 @@ class CategoryModel {
         name: json['name']?.toString() ?? '',
       );
     } else {
-      // Eğer kategori API'den sadece 'Hackathon' gibi bir String olarak dönüyorsa:
       return CategoryModel(
         id: json.toString(),
         name: json.toString(),

@@ -14,12 +14,9 @@ class EventBloc extends Bloc<EventEvent, EventState> {
   List<EventModel> _allEvents = [];
   List<String> _favorites = [];
 
-  final int _pageSize = 3; // Ekranda ilk başta 3 tane görünecek
-  int _currentPage = 1;
-
   EventBloc() : super(EventInitial()) {
     on<FetchEventsEvent>(_onFetchEvents);
-    on<LoadMoreEventsEvent>(_onLoadMoreEvents);
+    on<FilterEventsEvent>(_onFilterEvents);
     on<ToggleFavoriteEvent>(_onToggleFavorite);
   }
 
@@ -30,47 +27,34 @@ class EventBloc extends Bloc<EventEvent, EventState> {
         _categories = await _eventRepository.getCategories();
       }
       _favorites = await _favoriteRepository.getFavorites();
-
+      
+      // İlk yüklemede verileri çekip hafızaya alıyoruz
       _allEvents = await _eventRepository.getEvents();
 
-      _currentPage = 1;
       List<EventModel> filtered = _applyFilters(_allEvents, event.search, event.categoryId);
 
-      // İlk sayfa için sadece ilk 3 elemanı alıyoruz
-      final paginatedList = filtered.take(_pageSize).toList();
-      final hasMore = filtered.length > paginatedList.length;
-
       emit(EventLoaded(
-        events: paginatedList,
+        events: filtered,
         categories: _categories,
         favoriteIds: _favorites,
         selectedCategoryId: event.categoryId,
         searchQuery: event.search,
-        hasMore: hasMore,
-        isFetchingMore: false,
       ));
     } catch (e) {
       emit(EventError(e.toString().replaceAll('Exception: ', '')));
     }
   }
 
-  Future<void> _onLoadMoreEvents(LoadMoreEventsEvent event, Emitter<EventState> emit) async {
+  // Arama metni değiştiğinde ağa istek atmadan önbellekteki `_allEvents` üzerinden süzer
+  void _onFilterEvents(FilterEventsEvent event, Emitter<EventState> emit) {
     if (state is EventLoaded) {
       final currentState = state as EventLoaded;
-      if (!currentState.hasMore || currentState.isFetchingMore) return;
-
-      emit(currentState.copyWith(isFetchingMore: true));
-
-      _currentPage++;
-      List<EventModel> filtered = _applyFilters(_allEvents, currentState.searchQuery, currentState.selectedCategoryId);
-
-      final nextItems = filtered.take(_currentPage * _pageSize).toList();
-      final hasMore = filtered.length > nextItems.length;
+      List<EventModel> filtered = _applyFilters(_allEvents, event.search, event.categoryId);
 
       emit(currentState.copyWith(
-        events: nextItems,
-        hasMore: hasMore,
-        isFetchingMore: false,
+        events: filtered,
+        selectedCategoryId: event.categoryId,
+        searchQuery: event.search,
       ));
     }
   }
@@ -90,7 +74,8 @@ class EventBloc extends Bloc<EventEvent, EventState> {
       final searchQuery = search.toLowerCase();
       filtered = filtered.where((e) {
         return e.title.toLowerCase().contains(searchQuery) ||
-            e.description.toLowerCase().contains(searchQuery);
+            e.description.toLowerCase().contains(searchQuery) ||
+            (e.location != null && e.location!.toLowerCase().contains(searchQuery));
       }).toList();
     }
 

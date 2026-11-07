@@ -15,7 +15,15 @@ class FetchEventsEvent extends EventEvent {
   List<Object?> get props => [search, categoryId];
 }
 
-class LoadMoreEventsEvent extends EventEvent {}
+class FilterEventsEvent extends EventEvent {
+  final String? search;
+  final String? categoryId;
+
+  FilterEventsEvent({this.search, this.categoryId});
+
+  @override
+  List<Object?> get props => [search, categoryId];
+}
 
 class ToggleFavoriteEvent extends EventEvent {
   final String eventId;

@@ -17,6 +17,14 @@ class EventCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final displayDate = (event.date != null && event.date!.trim().isNotEmpty)
+        ? event.date!
+        : 'Tarih Belirtilmedi';
+
+    final displayLocation = (event.location != null && event.location!.trim().isNotEmpty)
+        ? event.location!
+        : 'Konum Belirtilmedi';
+
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 3,
@@ -41,10 +49,40 @@ class EventCard extends StatelessWidget {
           event.title,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(
-          event.description,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
+        subtitle: Padding(
+          padding: const EdgeInsets.only(top: 6.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      displayDate,
+                      style: const TextStyle(fontSize: 12),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 2),
+              Row(
+                children: [
+                  const Icon(Icons.location_on, size: 14, color: Colors.grey),
+                  const SizedBox(width: 4),
+                  Expanded(
+                    child: Text(
+                      displayLocation,
+                      style: const TextStyle(fontSize: 12),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
         trailing: IconButton(
           icon: Icon(

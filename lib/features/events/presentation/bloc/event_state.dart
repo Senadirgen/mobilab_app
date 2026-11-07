@@ -17,8 +17,6 @@ class EventLoaded extends EventState {
   final List<String> favoriteIds;
   final String? selectedCategoryId;
   final String? searchQuery;
-  final bool hasMore;
-  final bool isFetchingMore;
 
   EventLoaded({
     required this.events,
@@ -26,8 +24,6 @@ class EventLoaded extends EventState {
     required this.favoriteIds,
     this.selectedCategoryId,
     this.searchQuery,
-    this.hasMore = false,
-    this.isFetchingMore = false,
   });
 
   EventLoaded copyWith({
@@ -36,8 +32,6 @@ class EventLoaded extends EventState {
     List<String>? favoriteIds,
     String? selectedCategoryId,
     String? searchQuery,
-    bool? hasMore,
-    bool? isFetchingMore,
   }) {
     return EventLoaded(
       events: events ?? this.events,
@@ -45,8 +39,6 @@ class EventLoaded extends EventState {
       favoriteIds: favoriteIds ?? this.favoriteIds,
       selectedCategoryId: selectedCategoryId ?? this.selectedCategoryId,
       searchQuery: searchQuery ?? this.searchQuery,
-      hasMore: hasMore ?? this.hasMore,
-      isFetchingMore: isFetchingMore ?? this.isFetchingMore,
     );
   }
 
@@ -57,8 +49,6 @@ class EventLoaded extends EventState {
         favoriteIds,
         selectedCategoryId,
         searchQuery,
-        hasMore,
-        isFetchingMore,
       ];
 }
 

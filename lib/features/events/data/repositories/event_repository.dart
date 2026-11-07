@@ -1,6 +1,6 @@
+import 'package:mobilab_app/core/network/api_client.dart';
 import '../models/event_model.dart';
 import '../models/category_model.dart';
-import '../../../../core/network/api_client.dart';
 
 class EventRepository {
   final ApiClient _apiClient = ApiClient();
@@ -11,18 +11,36 @@ class EventRepository {
       final listData = _extractList(response.data);
       return listData.map((e) => CategoryModel.fromJson(e)).toList();
     } catch (_) {
-      return []; // Kategoriler çekilemezse ana akışı engellemesin
+      return [];
     }
   }
 
   Future<List<EventModel>> getEvents({String? search, String? categoryId}) async {
-    final Map<String, dynamic> queryParams = {};
+    final Map<String, dynamic> queryParams = {
+      'limit': 50,
+      'per_page': 50,
+    };
     if (search != null && search.isNotEmpty) queryParams['search'] = search;
     if (categoryId != null && categoryId.isNotEmpty) queryParams['category_id'] = categoryId;
 
-    final response = await _apiClient.get('/events', queryParameters: queryParams);
-    final listData = _extractList(response.data);
-    return listData.map((e) => EventModel.fromJson(e)).toList();
+    try {
+      final response = await _apiClient.get('/events', queryParameters: queryParams);
+      List<dynamic> listData = _extractList(response.data);
+
+      if (listData.length == 10) {
+        try {
+          final queryParamsPage2 = Map<String, dynamic>.from(queryParams);
+          queryParamsPage2['page'] = 2;
+          final responsePage2 = await _apiClient.get('/events', queryParameters: queryParamsPage2);
+          final listDataPage2 = _extractList(responsePage2.data);
+          listData = [...listData, ...listDataPage2];
+        } catch (_) {}
+      }
+
+      return listData.map((e) => EventModel.fromJson(e)).toList();
+    } catch (e) {
+      rethrow;
+    }
   }
 
   Future<EventModel> getEventDetail(String eventId) async {
